@@ -9,6 +9,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <wait.h>
+#include <algorithm>
 #include "cwushell.h"
 
 using namespace std;
@@ -34,6 +35,7 @@ void cwushell::mechanism() {
 
         // 2. Read a line of input from the user
         getline(cin, line);
+        cout << line << endl;
         char * line_in_chars = const_cast<char*>(line.c_str());
 
         // 3. Parse the line into the program name and the array of parameters
@@ -127,16 +129,32 @@ int cwushell::quit(string a, int x) {
         exit(0);
     } else if ((a.find(exit1) != string::npos) && x == 2) {
         char* code_e = myParameters[1];
-        int code_exit = atoi(code_e);
-        exit(code_exit);
-    } else{
-        printf("Wrong command. Visit help\n");
+        string code_ex(code_e);
+        if ((code_ex[0] == '[' && code_ex[code_ex.length() -1] == ']') || (code_ex[0] == '(' || code_ex[code_ex.length() -1] == ')') ) {
+            code_ex.erase(0, 1);
+            code_ex.erase(code_ex.length() - 1, 1);
+        }
+        if (code_ex.empty()) {
+            exit(0);
+        }
+        bool tr =  is_number(code_ex);
+        if (tr) {
+            int code_exit = stoi(code_ex);
+            exit(code_exit);
+        } else {
+            printf("Wrong command. Please type -help for more information\n");
+        }
+    } else if ((a.find(exit1) != string::npos) && x > 2) {
+        printf("Space is only allowed between the command and argument.\n"
+               "Remove any space in between arguments. \n");
+    } else {
+        printf("Wrong command. Please type -help for more information\n");
     }
 }
 
 int cwushell::change(string b, int y) {
     if (b == change_prompt && y == 1) {
-        default_prompt = "cwushell > ";
+        default_prompt = "cwushell> ";
         return 1;
     } else if ((b.find(change_prompt) != string::npos) && y > 1) {
         default_prompt = myParameters[1];
@@ -144,10 +162,11 @@ int cwushell::change(string b, int y) {
             default_prompt.append(" ");
             default_prompt.append(myParameters[i]);
         }
-        default_prompt.append(" > ");
+        default_prompt.append("> ");
         return 1;
     } else{
-        cout << "Invalid prompt" << endl;
+        cout << "Invalid prompt.\nNo space is allowed for the new prompt.\n"
+                "Type -help for more information.\n" << endl;
         return 0;
     }
 }
@@ -201,4 +220,11 @@ char * cwushell::goodFormat(std::string str) {
     char * line_in_chars = const_cast<char*>(str.c_str());
     char* args = strtok(line_in_chars," ");
     return args;
+}
+
+bool cwushell::is_number(const std::string& s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
 }

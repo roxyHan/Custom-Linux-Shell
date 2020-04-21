@@ -12,10 +12,10 @@ private:
 
     // predefined commands
     //----------- 1. quit [n]
-    std::string exit1 = "quit";
+    std::string exit1 = "exit";
     std::string exitAlternative;
     //----------- 2. change prompt
-    std::string change_prompt = "change_prompt";
+    std::string change_prompt = "prompt";
     std::string redirect;
     //----------- 3. distro -switch
     std::string distro_version = "distro -v";
@@ -39,6 +39,7 @@ public:
     int distro(std::string c, char *string);
     int info(std::string d, char *string);
     char* goodFormat(std::string str);
+    bool is_number(const std::string&);
 };
 
 
