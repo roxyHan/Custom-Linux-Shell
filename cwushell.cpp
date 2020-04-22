@@ -70,7 +70,7 @@ void cwushell::mechanism() {
             if (prog_name.find(exit1) != string::npos) {
                 quit(prog_name, allParams.size());
             } else if (prog_name.find(change_prompt) != string::npos) {
-                change(prog_name, allParams.size());
+                prompt(prog_name, allParams.size());
             } else if (prog_name.find("cpuinfo") != string::npos) {
                 cpuinfo(prog_name, myParameters[1]);
             } else if (prog_name.find("meminfo") != string::npos) {
@@ -104,9 +104,7 @@ int cwushell::execute( char* argv[])  {
     // using fork() to create a parallel process
     pid_t  pid = fork();
 
-
-    //char* arguments[] = const_cast<char*>(vec.);
-    if (pid == 0) {         // child process, reinterpret_cast<char *const *>(argv)
+    if (pid == 0) {         // child process
         execvp("sh", cmd_args);
         printf("*************** ERROR ***************\n");
     } else if (pid < 0) {
@@ -116,7 +114,6 @@ int cwushell::execute( char* argv[])  {
         int sts;
         waitpid(pid, &sts, 0);
     }
-
     return 1;
 }
 
@@ -127,17 +124,26 @@ int cwushell::execute( char* argv[])  {
 int cwushell::quit(string a, int x) {
     if (a == exit1 && x == 1) {
         exit(0);
-    } else if ((a.find(exit1) != string::npos) && x == 2) {
+    }
+    else if ((a.find(exit1) != string::npos) && x == 2) {
         char* code_e = myParameters[1];
         string code_ex(code_e);
-        if ((code_ex[0] == '[' && code_ex[code_ex.length() -1] == ']') || (code_ex[0] == '(' || code_ex[code_ex.length() -1] == ')') ) {
+        if (code_ex == "--help") {
+            cout << "Usage: exit [n]\n"
+                    "terminates the shell with argument given as exit value\n"
+                    "   No space is allowed for inside the argument.\n"
+                    "typing exit (alone with no argument) terminates the shell with 0 as exit value\n"
+                 << endl;
+            return 0;
+        }
+        else if ((code_ex[0] == '[' && code_ex[code_ex.length() -1] == ']') || (code_ex[0] == '(' || code_ex[code_ex.length() -1] == ')') ) {
             code_ex.erase(0, 1);
             code_ex.erase(code_ex.length() - 1, 1);
         }
         if (code_ex.empty()) {
             exit(0);
         }
-        bool tr =  is_number(code_ex);
+        bool tr = is_number(code_ex);
         if (tr) {
             int code_exit = stoi(code_ex);
             exit(code_exit);
@@ -147,26 +153,38 @@ int cwushell::quit(string a, int x) {
     } else if ((a.find(exit1) != string::npos) && x > 2) {
         printf("Space is only allowed between the command and argument.\n"
                "Remove any space in between arguments. \n");
-    } else {
-        printf("Wrong command. Please type -help for more information\n");
+    }
+    else {
+        printf("Wrong command. Please type exit --help for more information\n");
     }
 }
 
-int cwushell::change(string b, int y) {
+int cwushell::prompt(string b, int y) {
     if (b == change_prompt && y == 1) {
         default_prompt = "cwushell> ";
         return 1;
     } else if ((b.find(change_prompt) != string::npos) && y > 1) {
-        default_prompt = myParameters[1];
-        for (int i = 2; i < y; i++) {
-            default_prompt.append(" ");
-            default_prompt.append(myParameters[i]);
+        if (myParameters[1] == prompt_help) {
+            cout << "Usage: prompt [new_prompt]\n"
+                    "changes the current shell prompt to the new_prompt\n"
+                    "   No space is allowed for the new prompt.\n"
+                    "   The [new_prompt] should be lowercase\n"
+                    "typing prompt alone restores the default shell prompt\n"
+                 << endl;
         }
-        default_prompt.append("> ");
-        return 1;
-    } else{
-        cout << "Invalid prompt.\nNo space is allowed for the new prompt.\n"
-                "Type -help for more information.\n" << endl;
+        else {
+            default_prompt = myParameters[1];
+            for (int i = 2; i < y; i++) {
+                default_prompt.append(" ");
+                default_prompt.append(myParameters[i]);
+            }
+            default_prompt.append("> ");
+        }
+        return 0;
+    }
+    else{
+        cout << "Invalid prompt.\n"
+                "Type prompt --help for more information.\n" << endl;
         return 0;
     }
 }
@@ -175,22 +193,29 @@ int cwushell:: cpuinfo(std::string c, char* ext) {
     c.append(" ");
     c.append(ext);
     if (c == cpuinfo_clock) {
-        string c2 = "lscpu | grep MHz";
+        string c2 = "cat /proc/cpuinfo | grep 'model name' | head -n 1 | cut -d' ' -f8";
         char* clock[2]= {const_cast<char *>(c2.c_str()), NULL};
         execute(clock);
     } else if (c == cpuinfo_type) {
-        string c3 = "cat /proc/cpuinfo | grep 'vendor' | uniq";
+        string c3 = "cat /proc/cpuinfo | grep 'model name' | head -n 1 | cut -d' ' -f3";
         char* type[2] = {const_cast<char *>(c3.c_str()), NULL} ;
         execute(type);
     } else if (c == cpuinfo_cores) {
         string c4 = "cat /proc/cpuinfo | grep processor | wc -l";
         char* cores[2] = {const_cast<char *>(c4.c_str()), NULL} ;
         execute(cores);
+    } else if (c == cpuinfo_help) {
+        cout << "Usage: cpuinfo [-switch]\n"
+                "Switches that can be used for CPU information : \n"
+                " -c: displays the cpu clock\n"
+                " -t: displays the cpu type\n"
+                " -n: displays the number of cores\n"
+                " -h: displays this help message\n"
+             << endl;
     }
     else {
         cout << "Invalid switch.\n"
-                "Type -h for more information regarding the switches.\n" ;
-        exit(3);
+                "Type cpuinfo -h for more information regarding the switches.\n" ;
     }
 }
 
@@ -209,6 +234,18 @@ int cwushell::meminfo(std::string d, char* str) {
         string cache = "cat /sys/devices/system/cpu/cpu0/cache/index2/size";
         char* cache_L2[2] = {const_cast<char *>(cache.c_str()), NULL} ;
         execute(cache_L2);
+    } else if (d == meminfo_help) {
+       cout << "Usage: meminfo [-switch]\n"
+               "Switches that can be used for memory information : \n"
+               " -t: displays the total RAM memory\n"
+               " -u: displays the used RAM memory\n"
+               " -c: displays the size of the L2 cache\n"
+               " -h: displays this help message\n"
+       << endl;
+    }
+    else {
+        cout << "Invalid switch.\n"
+                "Type meminfo -h for more information regarding the switches.\n" ;
     }
 }
 
@@ -218,8 +255,7 @@ char * cwushell::goodFormat(std::string str) {
     return args;
 }
 
-bool cwushell::is_number(const std::string& s)
-{
+bool cwushell::is_number(const std::string& s) {
     std::string::const_iterator it = s.begin();
     while (it != s.end() && std::isdigit(*it)) ++it;
     return !s.empty() && it == s.end();
