@@ -35,7 +35,6 @@ void cwushell::mechanism() {
 
         // 2. Read a line of input from the user
         getline(cin, line);
-        cout << line << endl;
         char * line_in_chars = const_cast<char*>(line.c_str());
 
         // 3. Parse the line into the program name and the array of parameters
@@ -64,12 +63,6 @@ void cwushell::mechanism() {
             }
         }
 
-        /**cout << prog_name << endl;
-        cout << "Now the command to be executed" << endl;
-        for (vector<string>::iterator it = params.begin(); it != params.end(); ++it) {
-            cout << *it << " ";
-        }*/
-
 
         // 4. Use the fork() system call to spawn a new child process
             //---- Check if the user input matches one predefined command
@@ -78,10 +71,10 @@ void cwushell::mechanism() {
                 quit(prog_name, allParams.size());
             } else if (prog_name.find(change_prompt) != string::npos) {
                 change(prog_name, allParams.size());
-            } else if (prog_name.find("distro") != string::npos) {
-                distro(prog_name, myParameters[1]);
-            } else if (prog_name.find("info") != string::npos) {
-                info(prog_name, myParameters[1]);
+            } else if (prog_name.find("cpuinfo") != string::npos) {
+                cpuinfo(prog_name, myParameters[1]);
+            } else if (prog_name.find("meminfo") != string::npos) {
+                meminfo(prog_name, myParameters[1]);
             } else {
                 codeFlag = execute(myParameters);
             }
@@ -101,13 +94,21 @@ void cwushell::mechanism() {
  */
 int cwushell::execute( char* argv[])  {
 
+    char* cmd_args[4];
+    cmd_args[0] = "sh";
+    cmd_args[1] = "-c";
+    cmd_args[2] = *argv;
+    cmd_args[3] = NULL;
+
+
     // using fork() to create a parallel process
     pid_t  pid = fork();
 
+
     //char* arguments[] = const_cast<char*>(vec.);
-    if (pid == 0) {         // child process
-        execvp(reinterpret_cast<const char *>(argv[0]), reinterpret_cast<char *const *>(argv));
-        printf("***************\n");
+    if (pid == 0) {         // child process, reinterpret_cast<char *const *>(argv)
+        execvp("sh", cmd_args);
+        printf("*************** ERROR ***************\n");
     } else if (pid < 0) {
         cout << "Error in forking attempt!" << endl;
     }
@@ -124,7 +125,6 @@ int cwushell::execute( char* argv[])  {
     ----------------------------------------------- */
 
 int cwushell::quit(string a, int x) {
-   // int sizeArr = sizeof(myParameters)/sizeof(myParameters[0]);
     if (a == exit1 && x == 1) {
         exit(0);
     } else if ((a.find(exit1) != string::npos) && x == 2) {
@@ -171,48 +171,44 @@ int cwushell::change(string b, int y) {
     }
 }
 
-int cwushell::distro(std::string c, char* ext) {
+int cwushell:: cpuinfo(std::string c, char* ext) {
     c.append(" ");
     c.append(ext);
-    string c1 = "lsb_release";
-    if (c == distro_version) {
-        string c2 = "-r";
-        char* vers[3]= {const_cast<char *>(c1.c_str()), const_cast<char *>(c2.c_str()), NULL} ;
-        execute(vers);
-    } else if (c == distro_name) {
-        string c3 = "-i";
-        char* nameD[3] = {const_cast<char *>(c1.c_str()), const_cast<char *>(c3.c_str()), NULL} ;
-        execute(nameD);
-    } else if (c == distro_code) {
-        string c4 = "-c";
-        char* codeN[3] = {const_cast<char *>(c1.c_str()), const_cast<char *>(c4.c_str()), NULL} ;
-        execute(codeN);
+    if (c == cpuinfo_clock) {
+        string c2 = "lscpu | grep MHz";
+        char* clock[2]= {const_cast<char *>(c2.c_str()), NULL};
+        execute(clock);
+    } else if (c == cpuinfo_type) {
+        string c3 = "cat /proc/cpuinfo | grep 'vendor' | uniq";
+        char* type[2] = {const_cast<char *>(c3.c_str()), NULL} ;
+        execute(type);
+    } else if (c == cpuinfo_cores) {
+        string c4 = "cat /proc/cpuinfo | grep processor | wc -l";
+        char* cores[2] = {const_cast<char *>(c4.c_str()), NULL} ;
+        execute(cores);
     }
     else {
-        cout << "Invalid" ;
+        cout << "Invalid switch.\n"
+                "Type -h for more information regarding the switches.\n" ;
         exit(3);
     }
 }
 
-int cwushell::info(std::string d, char* str) {
+int cwushell::meminfo(std::string d, char* str) {
     d.append(" ");
     d.append(str);
-    string a1 = "getconf";
-    if (d == info_size) {
-        // getconfig PAGESIZE
-        string a2 = "PAGE_SIZE";
-        char* arr[3] = {const_cast<char *>(a1.c_str()), const_cast<char *>(a2.c_str()), NULL} ;
-        execute(arr);
-    } else if (d == info_numbers) {
-        // getconf _AVPHYS_PAGES
-        string a3 = "_AVPHYS_PAGES";
-        char* pagesCount[3] = {const_cast<char *>(a1.c_str()), const_cast<char *>(a3.c_str()), NULL} ;
-        execute(pagesCount);
-    } else if (d == info_processors) {
-        // nproc
-        string aT = "nproc";
-        char* arr2[2] = {const_cast<char *>(aT.c_str()), NULL} ;
-        execute(arr2);
+    if (d == meminfo_RAM_avail) {
+        string availability = "vmstat -s | grep 'total memory' | uniq";
+        char* avail_RAM[2] = {const_cast<char *>(availability.c_str()), NULL} ;
+        execute(avail_RAM);
+    } else if (d == meminfo_RAM_used) {
+        string used = "vmstat -s | grep 'used memory' | uniq";
+        char* used_RAM[2] = {const_cast<char *>(used.c_str()), NULL} ;
+        execute(used_RAM);
+    } else if (d == meminfo_L2cache) {
+        string cache = "cat /sys/devices/system/cpu/cpu0/cache/index2/size";
+        char* cache_L2[2] = {const_cast<char *>(cache.c_str()), NULL} ;
+        execute(cache_L2);
     }
 }
 

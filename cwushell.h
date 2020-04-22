@@ -17,14 +17,14 @@ private:
     //----------- 2. change prompt
     std::string change_prompt = "prompt";
     std::string redirect;
-    //----------- 3. distro -switch
-    std::string distro_version = "distro -v";
-    std::string distro_name = "distro -n";
-    std::string distro_code = "distro -c";
-    //----------- 4. info -switch
-    std::string info_size = "info -s";
-    std::string info_numbers = "info -n";
-    std::string info_processors = "info -p";
+    //----------- 3. cpuinfo -switch
+    std::string cpuinfo_clock = "cpuinfo -c";
+    std::string cpuinfo_type = "cpuinfo -t";
+    std::string cpuinfo_cores = "cpuinfo -n";
+    //----------- 4. meminfo -switch
+    std::string meminfo_RAM_avail = "meminfo -t";
+    std::string meminfo_RAM_used = "meminfo -u";
+    std::string meminfo_L2cache = "meminfo -c";
     //----------- 5. other existing shell commands will be handled by execvp
 
     char* myParameters[];
@@ -36,8 +36,8 @@ public:
     int execute(char **argv);//std::string , std::vector<std::string> aVector);
     int quit(std::string a, int code_content);
     int change(std::string b, int y);
-    int distro(std::string c, char *string);
-    int info(std::string d, char *string);
+    int cpuinfo(std::string c, char *string);
+    int meminfo(std::string d, char *string);
     char* goodFormat(std::string str);
     bool is_number(const std::string&);
 };
