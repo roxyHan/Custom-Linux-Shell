@@ -44,6 +44,7 @@ public:
     int prompt(std::string b, int y);
     int cpuinfo(std::string c, char *string);
     int meminfo(std::string d, char *string);
+    void manual();
     char* goodFormat(std::string str);
     bool is_number(const std::string&);
 };

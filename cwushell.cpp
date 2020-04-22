@@ -75,6 +75,8 @@ void cwushell::mechanism() {
                 cpuinfo(prog_name, myParameters[1]);
             } else if (prog_name.find("meminfo") != string::npos) {
                 meminfo(prog_name, myParameters[1]);
+            } else if (prog_name.find("manual") != string::npos) {
+                manual();
             } else {
                 codeFlag = execute(myParameters);
             }
@@ -247,6 +249,24 @@ int cwushell::meminfo(std::string d, char* str) {
         cout << "Invalid switch.\n"
                 "Type meminfo -h for more information regarding the switches.\n" ;
     }
+}
+
+void cwushell::manual() {
+    cout << "Manual for cwushell:\n\n"
+            "exit [n] : terminates the shell with argument as exit value\n"
+            "exit : terminates the shell with 0 as exit value when no argument is provided\n\n"
+            "prompt [new_prompt]: changes the current shell prompt to the new_prompt\n"
+            "prompt : restores the shell to the default prompt when given no argument\n\n"
+            "cpuinfo [-switch]: for CPU related information \n"
+            "   -c: the CPU clock\n"
+            "   -t: the CPU type\n"
+            "   -n: the number of cores\n\n"
+            "meminfo [-switch]: for memory related information\n"
+            "   -t: total RAM available\n"
+            "   -u: total RAM used\n"
+            "   -c: L2 cache size\n"
+            ""
+            "" << endl;
 }
 
 char * cwushell::goodFormat(std::string str) {
