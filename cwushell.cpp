@@ -28,7 +28,8 @@ void cwushell::mechanism() {
     int codeFlag;
     string line;
     vector<string> allParams;
-    cout << "Welcome! Type 'manual' for more details on how to use the cwushell.\n"
+
+    cout << "\nWelcome! Type 'manual' for more details on how to use the cwushell.\n"
             "You can access the manual at any time by typing 'manual' in the shell.\n" << endl;
     do {
         // 1. Print a prompt
@@ -85,9 +86,9 @@ void cwushell::mechanism() {
             } else if (prog_name.find("manual") != string::npos) {
                 manual();
             } else { // standard linux commands
-                int huit = system(command.c_str());
-                if (huit == -1) {
-                    cout << "Failed attempt. Please consult the help by typing manual\n" << endl;
+                int valueReturned = system(command.c_str());
+                if (valueReturned != 0) {
+                    cout << "Failed or invalid command. Please consult the help by typing 'manual'\n" << endl;
                 }
             }
 
@@ -118,7 +119,7 @@ int cwushell::execute( char* argv[])  {
 
     if (pid == 0) {         // child process
         execvp("sh", cmd_args);
-        printf("*************** ERROR ***************\n");
+        printf("Error: could not execute command\n");
     } else if (pid < 0) {
         cout << "Error in forking attempt!" << endl;
     }
@@ -160,7 +161,7 @@ int cwushell::quit(string a, int x) {
             int code_exit = stoi(code_ex);
             exit(code_exit);
         } else {
-            printf("Wrong command. Please type -help for more information\n");
+            printf("Wrong command. Please type exit --help for more information\n");
         }
     } else if ((a.find(exit1) != string::npos) && x > 2) {
         printf("Space is only allowed between the command and argument.\n"

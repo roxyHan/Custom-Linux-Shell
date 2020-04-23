@@ -8,7 +8,7 @@ class cwushell {
 private:
     std::string prog_name;
     std::vector<std::string> params;
-    std::string default_prompt = "cwushell > ";
+    std::string default_prompt = "cwushell> ";
 
     // predefined commands
     //----------- 1. quit [n]
