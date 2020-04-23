@@ -28,7 +28,8 @@ void cwushell::mechanism() {
     int codeFlag;
     string line;
     vector<string> allParams;
-
+    cout << "Welcome! Type 'manual' for more details on how to use the cwushell.\n"
+            "You can access the manual at any time by typing 'manual' in the shell.\n" << endl;
     do {
         // 1. Print a prompt
         cout << default_prompt;
@@ -63,6 +64,12 @@ void cwushell::mechanism() {
             }
         }
 
+        // construct the command
+        string command = allParams[0];
+        for (int i = 1; i < allParams.size(); i++) {
+            command.append(" ");
+            command.append(allParams[i]);
+        }
 
         // 4. Use the fork() system call to spawn a new child process
             //---- Check if the user input matches one predefined command
@@ -77,8 +84,11 @@ void cwushell::mechanism() {
                 meminfo(prog_name, myParameters[1]);
             } else if (prog_name.find("manual") != string::npos) {
                 manual();
-            } else {
-                codeFlag = execute(myParameters);
+            } else { // standard linux commands
+                int huit = system(command.c_str());
+                if (huit == -1) {
+                    cout << "Failed attempt. Please consult the help by typing manual\n" << endl;
+                }
             }
 
 
@@ -252,7 +262,8 @@ int cwushell::meminfo(std::string d, char* str) {
 }
 
 void cwushell::manual() {
-    cout << "Manual for cwushell:\n\n"
+    cout << "Manual for cwushell:\n"
+            "This shell mimics the standard terminal\n"
             "exit [n] : terminates the shell with argument as exit value\n"
             "exit : terminates the shell with 0 as exit value when no argument is provided\n\n"
             "prompt [new_prompt]: changes the current shell prompt to the new_prompt\n"
@@ -265,8 +276,7 @@ void cwushell::manual() {
             "   -t: total RAM available\n"
             "   -u: total RAM used\n"
             "   -c: L2 cache size\n"
-            ""
-            "" << endl;
+            << endl;
 }
 
 char * cwushell::goodFormat(std::string str) {
