@@ -176,7 +176,7 @@ int cwushell::prompt(string b, int y) {
     if (b == change_prompt && y == 1) {
         default_prompt = "cwushell> ";
         return 1;
-    } else if ((b.find(change_prompt) != string::npos) && y > 1) {
+    } else if ((b.find(change_prompt) != string::npos) && y == 2) {
         if (myParameters[1] == prompt_help) {
             cout << "Usage: prompt [new_prompt]\n"
                     "changes the current shell prompt to the new_prompt\n"
