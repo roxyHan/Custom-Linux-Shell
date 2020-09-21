@@ -108,8 +108,8 @@ void cwushell::mechanism() {
 int cwushell::execute( char* argv[])  {
 
     char* cmd_args[4];
-    cmd_args[0] = "sh";
-    cmd_args[1] = "-c";
+    cmd_args[0] = (char*) "sh";
+    cmd_args[1] = (char*) "-c";
     cmd_args[2] = *argv;
     cmd_args[3] = NULL;
 
